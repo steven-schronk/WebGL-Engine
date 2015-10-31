@@ -13,7 +13,12 @@ and open the template in the editor.
        height: 100px;
        width: 50%;
        overflow-y: scroll;
+       font-family: monospace;
     }
+    #log_info { color: darkgreen; margin: 0; }
+    #log_warn { color: darkorange; margin: 0; }
+    #log_error{ color: red; margin: 0; }
+    
     #webgl-canvas {
         border: 1px solid #000;
     }
@@ -111,7 +116,7 @@ and open the template in the editor.
        }
 
         this.addPoint = function (pt, color){
-            if(arguments.length != 2) { appendLog("Incorrect Number Of Arguments"); }
+            if(arguments.length != 2) { appendLog(2, "Incorrect Number Of Arguments"); }
             var vertexCounter = vertexBufferPoints.length;
             var first = vertexCounter;
             for(var arg = 0; arg < arguments.length; ++arg){
@@ -140,7 +145,7 @@ and open the template in the editor.
          * @returns {int} vertex count
          */
         this.addTriangle = function (pt_1, pt_1_color, pt_2, pt_2_color, pt_3, pt_3_color){
-            if(arguments.length != 6) { appendLog("Incorrect Number Of Arguments"); }
+            if(arguments.length != 6) { appendLog(1, "Incorrect Number Of Arguments"); }
             var vertexCounter = vertexBufferTriangles.length;
             for(var arg = 0; arg < arguments.length; ++arg){
                 var arr = arguments[arg];
@@ -392,7 +397,7 @@ and open the template in the editor.
         } catch (e) {
         }
         if (!gl) {
-            appendLog("Could not initialise WebGL, sorry :-(");
+            appendLog(2, "Could not initialise WebGL, sorry :-(");
         }
     }
 
@@ -424,7 +429,7 @@ and open the template in the editor.
         gl.compileShader(shader);
 
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            appendLog(gl.getShaderInfoLog(shader));
+            appendLog(2, gl.getShaderInfoLog(shader));
             return null;
         }
         return shader;
@@ -440,7 +445,7 @@ and open the template in the editor.
         gl.linkProgram(shaderProgram);
 
         if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-            appendLog("Could not initialise shader programs.");
+            appendLog(2, "Could not initialise shader programs.");
         }
 
         gl.useProgram(shaderProgram);
@@ -528,14 +533,18 @@ and open the template in the editor.
         gl.drawArrays(gl.TRIANGLES, 0, vertexBufferTriangles.length/7); // 6 verticies for each point in triangle
     }
 
-    function appendLog(text){
-        error_console.innerHTML += text + "<br>";
+    function appendLog(level, text){
+        switch(level){
+            case 0: error_console.innerHTML += "<p id=log_info>[INFO ] " + text + "</p>"; break;
+            case 1: error_console.innerHTML += "<p id=log_warn>[WARN ] " + text + "</p>"; break;
+            case 2: error_console.innerHTML += "<p id=log_error>[ERROR] " + text + "</p>";
+        }
         error_console.scrollTop = error_console.scrollHeight;
     }
 
     function init_engine(){
         error_console = document.getElementById("error_console");
-        appendLog("Starting Init Process");
+        appendLog(0, "Starting Init Process Info");
         var canvas = document.getElementById("webgl-canvas");
         initGL(canvas);
         initShaders();
@@ -551,7 +560,7 @@ and open the template in the editor.
         drawScene();
         
         console.log(document.getElementById("console"));
-        appendLog("Init Complete");
+        appendLog(0, "Init Complete");
     }
 </script>
 
@@ -582,7 +591,7 @@ and open the template in the editor.
 </script>
 <noscript>Your browser does not support JavaScript or JavaScript is disabled.</noscript>
     <canvas id="webgl-canvas" width="500" height="500"></canvas>
-    <button onClick="appendLog(Date.now())">Add</button>
+    <button onClick="appendLog(0, Date.now())">Add</button>
     <div id="error_console" ></div>
 
 </body>
