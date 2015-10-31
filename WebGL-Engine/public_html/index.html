@@ -100,17 +100,20 @@ and open the template in the editor.
         this.model =  [];
         this.type = null;
         
-        /* need drawing instructions
+        /* Add drawing instructions for gadget.
                glDrawArrays parameters for any of the buffers that are used.
-                save space by not assuming all of them are used?
                     mode
                     first
                     count
         */
+       this.pushDrawingCommand = function(mode, first, count){
+           this.model.push(mode, first, count);
+       }
 
         this.addPoint = function (pt, color){
-            if(arguments.length != 2) { alert("Incorrect Number Of Arguments"); }
+            if(arguments.length != 2) { appendLog("Incorrect Number Of Arguments"); }
             var vertexCounter = vertexBufferPoints.length;
+            var first = vertexCounter;
             for(var arg = 0; arg < arguments.length; ++arg){
                 var arr = arguments[arg];
                 for(var i = 0; i < arr.length; ++i){
@@ -118,9 +121,43 @@ and open the template in the editor.
                     vertexCounter++;
                 }
             }
-            return vertexCounter;
+            // First parameter should be same as gl.POINT
+            // Was not defined for some reason.
+            this.pushDrawingCommand(0, first, vertexCounter - first);
         };
 
+        /**
+         * Adds triangle to buffer with three points and colors.
+         *
+         * TODO: RENAME TO INDICATE THIS LOADS DATA INTO THE BUFFER - NOT GENERATES VERTICIES
+         *
+         * @param {vec3} first point
+         * @param {vec4} first point color
+         * @param {vec3} second point
+         * @param {vec4} second point color
+         * @param {vec3} third point
+         * @param {vec4} third point color
+         * @returns {int} vertex count
+         */
+        this.addTriangle = function (pt_1, pt_1_color, pt_2, pt_2_color, pt_3, pt_3_color){
+            if(arguments.length != 6) { appendLog("Incorrect Number Of Arguments"); }
+            var vertexCounter = vertexBufferTriangles.length;
+            for(var arg = 0; arg < arguments.length; ++arg){
+                var arr = arguments[arg];
+                for(var i = 0; i < arr.length; ++i){
+                    //var element = arr[i];
+                    vertexBufferTriangles[vertexCounter] = arr[i];
+                    vertexCounter++;
+                }
+            }
+            return vertexCounter;
+        }
+    
+        /* Add colored line to buffer. */
+        this.addLine = function (pt1, pt_1_color, pt2, pt_2_color){
+            // TODO:
+        }   
+    
 /*
         this.setName = function (name){
             this.name = name;
@@ -140,6 +177,7 @@ and open the template in the editor.
     //Player.setName("Bobby");
     //Player.setOrigin(point_d);
     Player.name = "Yahoo";
+    Player.addPoint(point_a, color_a);
     
     
     //Player.name = "Blah";
@@ -147,43 +185,9 @@ and open the template in the editor.
     /* Add colored point to buffer. */
     /* Returns parameters needed to draw with glDrawArrays */
 
-
     //addPoint(point_d, color_d);
 
-
-    /* Add colored line to buffer. */
-    function addLine(pt1, pt_1_color, pt2, pt_2_color){
-        
-    }
-
-    /**
-     * Adds triangle to buffer with three points and colors.
-     *
-     * TODO: RENAME TO INDICATE THIS LOADS DATA INTO THE BUFFER - NOT GENERATES VERTICIES
-     *
-     * @param {vec3} first point
-     * @param {vec4} first point color
-     * @param {vec3} second point
-     * @param {vec4} second point color
-     * @param {vec3} third point
-     * @param {vec4} third point color
-     * @returns {int} vertex count
-     */
-    function addTriangle(pt_1, pt_1_color, pt_2, pt_2_color, pt_3, pt_3_color){
-        if(arguments.length != 6) { alert("Incorrect Number Of Arguments"); }
-        var vertexCounter = vertexBufferTriangles.length;
-        for(var arg = 0; arg < arguments.length; ++arg){
-            var arr = arguments[arg];
-            for(var i = 0; i < arr.length; ++i){
-                //var element = arr[i];
-                vertexBufferTriangles[vertexCounter] = arr[i];
-                vertexCounter++;
-            }
-        }
-        return vertexCounter;
-    }
-
-    addTriangle( point_a, color_a, point_b, color_b, point_c, color_c);
+    //addTriangle( point_a, color_a, point_b, color_b, point_c, color_c);
 
     /**
      * Adds rectiangle to buffer with three points and colors.
@@ -196,7 +200,7 @@ and open the template in the editor.
      * @param {vec4} third point color
      * @param {vec4} fourth point color    
      * @returns {int} vertex count
-     */
+     
     function addRectangle(pt1, color_1, pt2, color_2, pt3, color_3, color_4){
         addTriangle(pt1, color_1, pt2, color_2, pt3, color_3);
         var pt = vec3.create();
@@ -218,11 +222,12 @@ and open the template in the editor.
         addTriangle(pt2, color_2, pt4, color_4, pt3, color_3);
         return vertexBufferTriangles.length;
     }
+    
 
     function addRectangleOneColor(pt1, pt2, pt3, color){
          addRectangle(pt1, color, pt2, color, pt3, color, color);
     }
-
+*/
     //addRectangle(point_a, color_a, point_b, color_b, point_c, color_c, color_d);
 
     //addRectangleOneColor(point_a, point_b, point_c, color_a);
@@ -233,7 +238,7 @@ and open the template in the editor.
     
 
     */
-
+    /*
     function addCubeOffsetOneColor(origin, x_offset, y_offset, z_offset, color){
         // NOTE: The offsets ADD to the origin coordinates
         var p1 = vec3.create();     p1 = vec3.clone(origin);
@@ -255,12 +260,12 @@ and open the template in the editor.
 
         // right
     }
-
-    addCubeOffsetOneColor(point_a, 0.35, 0.5, 0.7, color_d);
+    */
+    //addCubeOffsetOneColor(point_a, 0.35, 0.5, 0.7, color_d);
 
     /**
      * Generate cube with one color per point.
-     */
+     
     function addCube(pt1, color_1, pt2, color_2, pt3, color_3, pt4, color_4, color_5, color_6, color_7, color_8){
         var height = pt1[z] - pt2[z];
         var width  = pt2[x] - pt1[x];
@@ -281,32 +286,14 @@ and open the template in the editor.
         // side 4
 
     }
-
+    */
     /**
      * Generate cube with only one color.
-     */
+     
     function addCubeOneColor(pt1, pt2, pt3, pt4, color){
         addCube(pt1, color, pt2, color, pt3, color, pt4, color, color, color, color, color);
     }
-
-
-
-    function initModels(){
-        var drawCommand = {
-            /*
-            glDrawArrays parameters for any of the buffers that are used.
-                save space by not assuming all of them are used?
-                    mode
-                    first
-                    count
-            */
-        }
-        // TODO: TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
-        
-        //Coordinates.model.push(new Array(gl.POINTS,2,3));
-    }
-
-
+    */
     function onKeyPress(evt){
         evt = (evt) ? evt : (window.event) ? event : null;
         if (evt){
@@ -405,7 +392,7 @@ and open the template in the editor.
         } catch (e) {
         }
         if (!gl) {
-            alert("Could not initialise WebGL, sorry :-(");
+            appendLog("Could not initialise WebGL, sorry :-(");
         }
     }
 
@@ -437,7 +424,7 @@ and open the template in the editor.
         gl.compileShader(shader);
 
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            alert(gl.getShaderInfoLog(shader));
+            appendLog(gl.getShaderInfoLog(shader));
             return null;
         }
         return shader;
@@ -445,7 +432,7 @@ and open the template in the editor.
 
     function initShaders() {
         var fragmentShader = getShader(gl, "shader-fs");
-        var vertexShader = getShader(gl, "shader-vs");
+        var vertexShader   = getShader(gl, "shader-vs");
 
         shaderProgram = gl.createProgram();
         gl.attachShader(shaderProgram, vertexShader);
@@ -453,7 +440,7 @@ and open the template in the editor.
         gl.linkProgram(shaderProgram);
 
         if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-            alert("Could not initialise shaders");
+            appendLog("Could not initialise shader programs.");
         }
 
         gl.useProgram(shaderProgram);
@@ -478,7 +465,6 @@ and open the template in the editor.
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
         coordinatePositionBuffer.itemSize = 3; // columns
         coordinatePositionBuffer.numItems = 2; // rows
-  
         coordinateColorBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, coordinateColorBuffer);
         var colors = [
@@ -491,7 +477,6 @@ and open the template in the editor.
         coordinateColorBuffer.numItems = 3; // rows
 
         /* END OF COORDINATE BUFFER CREATION */
-
         triangleVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexBufferTriangles), gl.STATIC_DRAW);
@@ -511,7 +496,7 @@ and open the template in the editor.
   //mat4.rotateY(pMatrix, pMatrix, y);
   
   // draw coordinates
-        /*
+        
   gl.bindBuffer(gl.ARRAY_BUFFER, coordinatePositionBuffer);
   gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, coordinatePositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
   
@@ -545,10 +530,6 @@ and open the template in the editor.
         gl.drawArrays(gl.TRIANGLES, 0, vertexBufferTriangles.length/7); // 6 verticies for each point in triangle
     }
 
-    function drawObject(){
-
-    }
-
     function appendLog(text){
         error_console.innerHTML += text + "<br>";
         error_console.scrollTop = error_console.scrollHeight;
@@ -561,7 +542,7 @@ and open the template in the editor.
         initGL(canvas);
         initShaders();
         initBuffers();
-        initModels();
+        //initModels();
         gl.clearColor(1.0, 1.0, 1.0, 1.0);
         gl.enable(gl.DEPTH_TEST);
 
