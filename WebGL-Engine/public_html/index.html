@@ -491,32 +491,30 @@ and open the template in the editor.
         mat4.translate(mvMatrix, mvMatrix, [0, 0, -3]);
         mat4.multiply(mvMatrix, mvMatrix, orbitRotationMatrix);
 
-  // Scale -> Rotate -> Translate  (reverse order for all at once)
-  //mat4.rotateX(pMatrix, pMatrix, x);
-  //mat4.rotateY(pMatrix, pMatrix, y);
-  
-  // draw coordinates
-        
-  gl.bindBuffer(gl.ARRAY_BUFFER, coordinatePositionBuffer);
-  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, coordinatePositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-  
-  gl.bindBuffer(gl.ARRAY_BUFFER, coordinateColorBuffer);
-        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, coordinateColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        // Scale -> Rotate -> Translate  (reverse order for all at once)
+        //mat4.rotateX(pMatrix, pMatrix, x);
+        //mat4.rotateY(pMatrix, pMatrix, y);
 
-  setMatrixUniforms();
-  gl.drawArrays(gl.LINES, 0, coordinatePositionBuffer.numItems);
-  
-        //mvPushMatrix();
-  mat4.rotateZ(mvMatrix, mvMatrix, Math.PI/2);
-  
-  setMatrixUniforms();
-  gl.drawArrays(gl.LINES, 0, coordinatePositionBuffer.numItems);
-        //mvPopMatrix();
+        // draw coordinates
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, coordinatePositionBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, coordinatePositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, coordinateColorBuffer);
+              gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, coordinateColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        setMatrixUniforms();
+        gl.drawArrays(gl.POINTS, 0, coordinatePositionBuffer.numItems);
+
+        mat4.rotateZ(mvMatrix, mvMatrix, Math.PI/2);
+
+        setMatrixUniforms();
+        gl.drawArrays(gl.POINTS, 0, coordinatePositionBuffer.numItems);
         mat4.rotateY(mvMatrix, mvMatrix, Math.PI/2);
         
         setMatrixUniforms();
-        gl.drawArrays(gl.LINES, 0, coordinatePositionBuffer.numItems);
-          
+        gl.drawArrays(gl.POINTS, 0, coordinatePositionBuffer.numItems);
+
         /* END OF COORDINATE DRAW */
 
         setMatrixUniforms();
@@ -577,6 +575,7 @@ and open the template in the editor.
     varying vec4 vColor;
 
     void main(void) {
+        gl_PointSize = 4.0;
         gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
         vColor = aVertexColor;
     }
