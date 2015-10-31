@@ -1,0 +1,39 @@
+-------------------------------------------------------------------------------
+								TODO
+-------------------------------------------------------------------------------
+
+Complete basic geometric primitives
+	Plane
+	Cube
+	Cube with beveled edges
+	Sphere
+	IcoSphere
+	Cylinder
+	Cone
+	Rod
+
+Get some version control on this project
+
+Publish application on GitHub
+
+Be able to draw grid to represent floor
+
+Expand grid into more appropriate map for game
+
+Represent multiple characters on board using instances of same model
+
+Create different unit models:
+	Bot
+	Vehicle
+	Ship
+
+Create some AI for the player to play against
+
+Generate some procedural textures
+
+Put completed project on website
+-------------------------------------------------------------------------------
+								DONE
+-------------------------------------------------------------------------------
+
+

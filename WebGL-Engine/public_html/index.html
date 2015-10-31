@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+<head>
+<title>Game Engine</title>
+<style type="text/css">
+    #error_console {
+       border: 1px solid #000;
+       height: 100px;
+       width: 50%;
+       overflow-y: scroll;
+    }
+    #webgl-canvas {
+        border: 1px solid #000;
+    }
+</style>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+</head>
+<body onLoad="init_engine();">
+<script type="text/javascript" src="gl-matrix.js"></script>
+<script>
+    var gadgetCounter = 0;
+    var error_console;
+    var x = 0, y = 1, z = 2;            /* DO NOT MODIFY THESE VALUES */
+    var r = 0, g = 1, b = 2, a = 3;     /* DO NOT MODIFY THESE VALUES */
+    var x_rotation = 0, y_rotation = 0, z_rotation = 0;
+
+    var vertexBufferPoints    = [];  // pt, color
+    var vertexBufferLines     = [];  // pt1, pt_1_color, pt2, pt_2_color
+    var vertexBufferTriangles = [];  // pt_1, pt_1_color, pt_2, pt_2_color, pt_3, pt_3_color
+    var lastMouseX = null;
+    var lastMouseY = null;
+    var console;
+    var gl;
+    var shaderProgram;
+    var mvMatrix = mat4.create();       // model view matrix
+    var pMatrix = mat4.create();        // projection matrix
+    var mvMatrixStack = [];
+    var coordinatePositionBuffer;
+    var coordinateColorBuffer;
+    var triangleVertexPositionBuffer;      // TODO: RENAME THIS VARIABLE
+    var mouseDown = false;
+    var orbitRotationMatrix = mat4.create();
+    mat4.identity(orbitRotationMatrix);
+
+    /* creating a point as a vector of three values */
+    var point_a = vec3.create();
+    point_a[x] = 0.25;
+    point_a[y] = 0.125;
+    point_a[z] = 0.375;
+
+    var color_a = vec4.create();
+    color_a[r] = 1.0;
+    color_a[g] = 0.0;
+    color_a[b] = 0.0;
+    color_a[a] = 1.0;
+
+    /* creating a point as a vector of three values */
+    var point_b = vec3.create();
+    point_b[z] = 0.875;
+    point_b[y] = 0.75;
+    point_b[z] = 0.25;
+
+    var color_b = vec4.create();
+    color_b[r] = 0.0;
+    color_b[g] = 1.0;
+    color_b[b] = 0.0;
+    color_b[a] = 1.0;
+
+    /* creating a point as a vector of three values */
+    var point_c = vec3.create();
+    point_c[x] = -.25;
+    point_c[y] = -.50;
+    point_c[z] = 0.75;
+
+    var color_c = vec4.create();
+    color_c[r] = 0.0;
+    color_c[g] = 0.0;
+    color_c[b] = 1.0;
+    color_c[a] = 1.0;
+
+    var point_d = vec3.create();
+    point_d[x] = -.25;
+    point_d[y] = -.50;
+    point_d[z] = 0.75;
+
+    var color_d = vec4.create();
+    color_d[r] = 0.0;
+    color_d[g] = 0.0;
+    color_d[b] = 0.0;
+    color_d[a] = 1.0;
+    
+    function Gadget(){
+        this.name = "Gadget"+gadgetCounter;
+        this.origin = new vec3.create();
+        this.model =  [];
+        this.type = null;
+        
+        /* need drawing instructions
+               glDrawArrays parameters for any of the buffers that are used.
+                save space by not assuming all of them are used?
+                    mode
+                    first
+                    count
+        */
+
+        this.addPoint = function (pt, color){
+            if(arguments.length != 2) { alert("Incorrect Number Of Arguments"); }
+            var vertexCounter = vertexBufferPoints.length;
+            for(var arg = 0; arg < arguments.length; ++arg){
+                var arr = arguments[arg];
+                for(var i = 0; i < arr.length; ++i){
+                    vertexBufferPoints[vertexCounter] = arr[i];
+                    vertexCounter++;
+                }
+            }
+            return vertexCounter;
+        };
+
+/*
+        this.setName = function (name){
+            this.name = name;
+        };
+
+        this.setOrigin = function (pt){
+            this.origin = pt;
+        };
+*/
+    }
+
+
+    /* Set origin coordinates for the the model *
+    GadgetBuilder.prototype.
+*/
+    Player = new Gadget();
+    //Player.setName("Bobby");
+    //Player.setOrigin(point_d);
+    Player.name = "Yahoo";
+    
+    
+    //Player.name = "Blah";
+    
+    /* Add colored point to buffer. */
+    /* Returns parameters needed to draw with glDrawArrays */
+
+
+    //addPoint(point_d, color_d);
+
+
+    /* Add colored line to buffer. */
+    function addLine(pt1, pt_1_color, pt2, pt_2_color){
+        
+    }
+
+    /**
+     * Adds triangle to buffer with three points and colors.
+     *
+     * TODO: RENAME TO INDICATE THIS LOADS DATA INTO THE BUFFER - NOT GENERATES VERTICIES
+     *
+     * @param {vec3} first point
+     * @param {vec4} first point color
+     * @param {vec3} second point
+     * @param {vec4} second point color
+     * @param {vec3} third point
+     * @param {vec4} third point color
+     * @returns {int} vertex count
+     */
+    function addTriangle(pt_1, pt_1_color, pt_2, pt_2_color, pt_3, pt_3_color){
+        if(arguments.length != 6) { alert("Incorrect Number Of Arguments"); }
+        var vertexCounter = vertexBufferTriangles.length;
+        for(var arg = 0; arg < arguments.length; ++arg){
+            var arr = arguments[arg];
+            for(var i = 0; i < arr.length; ++i){
+                //var element = arr[i];
+                vertexBufferTriangles[vertexCounter] = arr[i];
+                vertexCounter++;
+            }
+        }
+        return vertexCounter;
+    }
+
+    addTriangle( point_a, color_a, point_b, color_b, point_c, color_c);
+
+    /**
+     * Adds rectiangle to buffer with three points and colors.
+     *
+     * @param {vec3} point 1
+     * @param {vec3} point 2
+     * @param {vec3} point 3
+     * @param {vec4} first point color
+     * @param {vec4} second point color
+     * @param {vec4} third point color
+     * @param {vec4} fourth point color    
+     * @returns {int} vertex count
+     */
+    function addRectangle(pt1, color_1, pt2, color_2, pt3, color_3, color_4){
+        addTriangle(pt1, color_1, pt2, color_2, pt3, color_3);
+        var pt = vec3.create();
+        pt[x] = pt1[x];
+        pt[y] = pt3[y];
+        pt[z] = pt1[x];
+
+        var vec1 = vec3.create();
+        vec1[x] = pt1[x] - pt2[x];
+        vec1[y] = pt1[y] - pt2[y];
+        vec1[z] = pt1[z] - pt2[z];
+
+        var pt4 = vec3.create();
+
+        pt4[x] = pt3[x] - vec1[x];
+        pt4[y] = pt3[y] - vec1[y];
+        pt4[z] = pt3[z] - vec1[z];
+
+        addTriangle(pt2, color_2, pt4, color_4, pt3, color_3);
+        return vertexBufferTriangles.length;
+    }
+
+    function addRectangleOneColor(pt1, pt2, pt3, color){
+         addRectangle(pt1, color, pt2, color, pt3, color, color);
+    }
+
+    //addRectangle(point_a, color_a, point_b, color_b, point_c, color_c, color_d);
+
+    //addRectangleOneColor(point_a, point_b, point_c, color_a);
+
+    /*
+    function addCubeOffset(origin, width, depth, height, color_1, color_2...){
+    }
+    
+
+    */
+
+    function addCubeOffsetOneColor(origin, x_offset, y_offset, z_offset, color){
+        // NOTE: The offsets ADD to the origin coordinates
+        var p1 = vec3.create();     p1 = vec3.clone(origin);
+        var p2 = vec3.create();     p2 = vec3.clone(origin);
+        var p3 = vec3.create();     p3 = vec3.clone(origin);
+        p1[x] += x_offset;
+        p2[x] += x_offset;  p2[y] += y_offset;
+        p3[x] += x_offset;  p3[y] += y_offset;  p3[z] += z_offset;
+        // bottom
+        addRectangle(origin, color_a, p1, color_b, p2, color_c, color_d);
+
+        // top
+
+        // front
+
+        // back
+
+        // left
+
+        // right
+    }
+
+    addCubeOffsetOneColor(point_a, 0.35, 0.5, 0.7, color_d);
+
+    /**
+     * Generate cube with one color per point.
+     */
+    function addCube(pt1, color_1, pt2, color_2, pt3, color_3, pt4, color_4, color_5, color_6, color_7, color_8){
+        var height = pt1[z] - pt2[z];
+        var width  = pt2[x] - pt1[x];
+        var depth  = pt3[y] - pt4[y];
+
+        // top
+        addRectangle(pt1, color_1, pt2, color_2, pt3, color_3, pt4, color_4);
+
+        // bottom
+
+        addRectangle(pt1, color_1, pt2, color_2, pt3, color_3, pt4, color_4);
+        // side 1
+
+        // side 2
+
+        // side 3
+
+        // side 4
+
+    }
+
+    /**
+     * Generate cube with only one color.
+     */
+    function addCubeOneColor(pt1, pt2, pt3, pt4, color){
+        addCube(pt1, color, pt2, color, pt3, color, pt4, color, color, color, color, color);
+    }
+
+
+
+    function initModels(){
+        var drawCommand = {
+            /*
+            glDrawArrays parameters for any of the buffers that are used.
+                save space by not assuming all of them are used?
+                    mode
+                    first
+                    count
+            */
+        }
+        // TODO: TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
+        
+        //Coordinates.model.push(new Array(gl.POINTS,2,3));
+    }
+
+
+    function onKeyPress(evt){
+        evt = (evt) ? evt : (window.event) ? event : null;
+        if (evt){
+            var charCode = (evt.charCode) ? evt.charCode :((evt.keyCode) ? evt.keyCode :((evt.which) ? evt.which : 0));
+            return charCode;
+        }
+    }
+
+    window.requestAnimFrame = (function() {
+            return window.requestAnimationFrame ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame ||
+            window.oRequestAnimationFrame ||
+            window.msRequestAnimationFrame ||
+    function(/* function FrameRequestCallback */ callback, /* DOMElement Element */ element) {
+        window.setTimeout(callback, 1000/60);
+    };
+    })();
+
+    function handleKeyDown(event) {
+        console.innerHTML = +new Date + "&nbsp;X:"+x_rotation+"&nbsp;Y:"+y_rotation+"&nbsp;Z:"+z_rotation;
+            switch(onKeyPress(event)) {
+                case 65:
+                    x_rotation = x_rotation + 10;
+                    break;
+                case 68:
+                    x_rotation = x_rotation - 10;
+                    break;
+                case 87:
+                    y_rotation = y_rotation + 10;
+                    break;
+                case 83:
+                    y_rotation = y_rotation - 10;
+            }
+        var newRotationMatrix = mat4.create();
+        mat4.identity(newRotationMatrix);
+        mat4.rotate(newRotationMatrix, newRotationMatrix, degToRad(x_rotation / 10), [0, 1, 0]);
+        mat4.rotate(newRotationMatrix, newRotationMatrix, degToRad(y_rotation / 10), [1, 0, 0]);
+        mat4.multiply(orbitRotationMatrix, orbitRotationMatrix, newRotationMatrix);
+        drawScene();
+    }
+
+    function handleMouseDown(event) {
+        mouseDown = true;
+        lastMouseX = event.clientX;
+        lastMouseY = event.clientY;
+    }
+
+    function handleMouseUp(event) {
+        mouseDown = false;
+    }
+
+    function handleMouseMove(event) {
+        if (!mouseDown) { return; }
+        var newX = event.clientX;
+        var newY = event.clientY;
+        var newRotationMatrix = mat4.create();
+        mat4.identity(newRotationMatrix);
+        var deltaX = newX - lastMouseX;
+        mat4.rotate(newRotationMatrix, newRotationMatrix, degToRad(deltaX/2), [0, 1, 0]);
+        var deltaY = newY - lastMouseY;
+        mat4.rotate(newRotationMatrix, newRotationMatrix, degToRad(deltaY/2), [1, 0, 0]);
+        mat4.multiply(orbitRotationMatrix, orbitRotationMatrix, newRotationMatrix);
+        lastMouseX = newX;
+        lastMouseY = newY;
+        drawScene();
+    }
+
+    function mvPushMatrix() {
+        var copy = mat4.create();
+        mat4.clone(mvMatrix, copy);
+        mvMatrixStack.push(copy);
+    }
+
+    function mvPopMatrix() {
+        if (mvMatrixStack.length == 0) {
+            throw "Invalid popMatrix!";
+        }
+        mvMatrix = mvMatrixStack.pop();
+    }
+
+    function tick() {
+        requestAnimFrame(tick);
+        drawScene();
+    }
+ 
+    function degToRad(degrees) {
+        return degrees * Math.PI / 180;
+    }
+
+    function initGL(canvas) {
+        try {
+            gl = canvas.getContext("experimental-webgl");
+            gl.viewportWidth = canvas.width;
+            gl.viewportHeight = canvas.height;
+        } catch (e) {
+        }
+        if (!gl) {
+            alert("Could not initialise WebGL, sorry :-(");
+        }
+    }
+
+    function getShader(gl, id) {
+        var shaderScript = document.getElementById(id);
+        if (!shaderScript) {
+            return null;
+        }
+
+        var str = "";
+        var k = shaderScript.firstChild;
+        while (k) {
+            if (k.nodeType == 3) {
+                str += k.textContent;
+            }
+            k = k.nextSibling;
+        }
+
+        var shader;
+        if (shaderScript.type == "x-shader/x-fragment") {
+            shader = gl.createShader(gl.FRAGMENT_SHADER);
+        } else if (shaderScript.type == "x-shader/x-vertex") {
+            shader = gl.createShader(gl.VERTEX_SHADER);
+        } else {
+            return null;
+        }
+
+        gl.shaderSource(shader, str);
+        gl.compileShader(shader);
+
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            alert(gl.getShaderInfoLog(shader));
+            return null;
+        }
+        return shader;
+    }
+
+    function initShaders() {
+        var fragmentShader = getShader(gl, "shader-fs");
+        var vertexShader = getShader(gl, "shader-vs");
+
+        shaderProgram = gl.createProgram();
+        gl.attachShader(shaderProgram, vertexShader);
+        gl.attachShader(shaderProgram, fragmentShader);
+        gl.linkProgram(shaderProgram);
+
+        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+            alert("Could not initialise shaders");
+        }
+
+        gl.useProgram(shaderProgram);
+        shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+        gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+        shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
+        gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
+        shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+        shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+    }
+
+    function setMatrixUniforms() {
+        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+        gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+    }
+
+    function initBuffers() {
+        coordinatePositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, coordinatePositionBuffer);
+        var vertices = [    0.0, 0.0,  0.0, 
+                            1.0, 0.0,  0.0];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+        coordinatePositionBuffer.itemSize = 3; // columns
+        coordinatePositionBuffer.numItems = 2; // rows
+  
+        coordinateColorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, coordinateColorBuffer);
+        var colors = [
+            1.0, 0.0, 0.0, 1.0,
+            0.0, 1.0, 0.0, 1.0,
+            0.0, 0.0, 1.0, 1.0
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+        coordinateColorBuffer.itemSize = 4; // columns
+        coordinateColorBuffer.numItems = 3; // rows
+
+        /* END OF COORDINATE BUFFER CREATION */
+
+        triangleVertexPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexBufferTriangles), gl.STATIC_DRAW);
+    }
+
+    function drawScene() {
+        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        mat4.perspective(pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);
+        mat4.identity(mvMatrix);
+        mat4.translate(mvMatrix, mvMatrix, [0, 0, -3]);
+        mat4.multiply(mvMatrix, mvMatrix, orbitRotationMatrix);
+
+  // Scale -> Rotate -> Translate  (reverse order for all at once)
+  //mat4.rotateX(pMatrix, pMatrix, x);
+  //mat4.rotateY(pMatrix, pMatrix, y);
+  
+  // draw coordinates
+        /*
+  gl.bindBuffer(gl.ARRAY_BUFFER, coordinatePositionBuffer);
+  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, coordinatePositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, coordinateColorBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, coordinateColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+  setMatrixUniforms();
+  gl.drawArrays(gl.LINES, 0, coordinatePositionBuffer.numItems);
+  
+        //mvPushMatrix();
+  mat4.rotateZ(mvMatrix, mvMatrix, Math.PI/2);
+  
+  setMatrixUniforms();
+  gl.drawArrays(gl.LINES, 0, coordinatePositionBuffer.numItems);
+        //mvPopMatrix();
+        mat4.rotateY(mvMatrix, mvMatrix, Math.PI/2);
+        
+        setMatrixUniforms();
+        gl.drawArrays(gl.LINES, 0, coordinatePositionBuffer.numItems);
+          
+        /* END OF COORDINATE DRAW */
+
+        setMatrixUniforms();
+        gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 28, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 28, 12);
+
+        setMatrixUniforms();
+        gl.drawArrays(gl.TRIANGLES, 0, vertexBufferTriangles.length/7); // 6 verticies for each point in triangle
+    }
+
+    function drawObject(){
+
+    }
+
+    function appendLog(text){
+        error_console.innerHTML += text + "<br>";
+        error_console.scrollTop = error_console.scrollHeight;
+    }
+
+    function init_engine(){
+        error_console = document.getElementById("error_console");
+        appendLog("Starting Init Process");
+        var canvas = document.getElementById("webgl-canvas");
+        initGL(canvas);
+        initShaders();
+        initBuffers();
+        initModels();
+        gl.clearColor(1.0, 1.0, 1.0, 1.0);
+        gl.enable(gl.DEPTH_TEST);
+
+        canvas.onmousedown = handleMouseDown;
+        document.onmouseup = handleMouseUp;
+        document.onmousemove = handleMouseMove;
+        document.onkeydown = handleKeyDown;
+        drawScene();
+        
+        console.log(document.getElementById("console"));
+        appendLog("Init Complete");
+    }
+</script>
+
+<script id="shader-fs" type="x-shader/x-fragment">
+    precision mediump float;
+
+    varying vec4 vColor;
+
+    void main(void) {
+        gl_FragColor = vColor;
+    }
+</script>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+    attribute vec3 aVertexPosition;
+    attribute vec4 aVertexColor;
+
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+
+    varying vec4 vColor;
+
+    void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        vColor = aVertexColor;
+    }
+</script>
+<noscript>Your browser does not support JavaScript or JavaScript is disabled.</noscript>
+    <canvas id="webgl-canvas" width="500" height="500"></canvas>
+    <button onClick="appendLog(Date.now())">Add</button>
+    <div id="error_console" ></div>
+
+</body>
+
+</html>
+
