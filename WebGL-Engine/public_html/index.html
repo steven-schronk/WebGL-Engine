@@ -1,12 +1,7 @@
 <!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
 <html>
 <head>
-<title>Game Engine</title>
+<title>WebGL Game Engine</title>
 <style type="text/css">
     #error_console {
        border: 1px solid #000;
@@ -25,9 +20,10 @@ and open the template in the editor.
 </style>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
 </head>
-<body onLoad="init_engine();">
+<body onLoad="initEngine();">
 <script type="text/javascript" src="gl-matrix.js"></script>
 <script>
+    var gadgets = [];
     var gadgetCounter = 0;
     var error_console;
     var x = 0, y = 1, z = 2;            /* DO NOT MODIFY THESE VALUES */
@@ -37,6 +33,7 @@ and open the template in the editor.
     var vertexBufferPoints    = [];  // pt, color
     var vertexBufferLines     = [];  // pt1, pt_1_color, pt2, pt_2_color
     var vertexBufferTriangles = [];  // pt_1, pt_1_color, pt_2, pt_2_color, pt_3, pt_3_color
+    
     var lastMouseX = null;
     var lastMouseY = null;
     var console;
@@ -45,9 +42,9 @@ and open the template in the editor.
     var mvMatrix = mat4.create();       // model view matrix
     var pMatrix = mat4.create();        // projection matrix
     var mvMatrixStack = [];
-    var coordinatePositionBuffer;
-    var coordinateColorBuffer;
-    var triangleVertexPositionBuffer;      // TODO: RENAME THIS VARIABLE
+    //var coordinatePositionBuffer;
+    //var coordinateColorBuffer;
+    //var triangleVertexPositionBuffer;      // TODO: RENAME THIS VARIABLE
     var mouseDown = false;
     var orbitRotationMatrix = mat4.create();
     mat4.identity(orbitRotationMatrix);
@@ -66,7 +63,7 @@ and open the template in the editor.
 
     /* creating a point as a vector of three values */
     var point_b = vec3.create();
-    point_b[z] = 0.875;
+    point_b[x] = 0.87;
     point_b[y] = 0.75;
     point_b[z] = 0.25;
 
@@ -162,37 +159,7 @@ and open the template in the editor.
         this.addLine = function (pt1, pt_1_color, pt2, pt_2_color){
             // TODO:
         }   
-    
-/*
-        this.setName = function (name){
-            this.name = name;
-        };
-
-        this.setOrigin = function (pt){
-            this.origin = pt;
-        };
-*/
     }
-
-
-    /* Set origin coordinates for the the model *
-    GadgetBuilder.prototype.
-*/
-    Player = new Gadget();
-    //Player.setName("Bobby");
-    //Player.setOrigin(point_d);
-    Player.name = "Yahoo";
-    Player.addPoint(point_a, color_a);
-    
-    
-    //Player.name = "Blah";
-    
-    /* Add colored point to buffer. */
-    /* Returns parameters needed to draw with glDrawArrays */
-
-    //addPoint(point_d, color_d);
-
-    //addTriangle( point_a, color_a, point_b, color_b, point_c, color_c);
 
     /**
      * Adds rectiangle to buffer with three points and colors.
@@ -390,6 +357,7 @@ and open the template in the editor.
     }
 
     function initGL(canvas) {
+        appendLog(0, "Creating WebGL Canvas");
         try {
             gl = canvas.getContext("experimental-webgl");
             gl.viewportWidth = canvas.width;
@@ -436,6 +404,7 @@ and open the template in the editor.
     }
 
     function initShaders() {
+        appendLog(0, "Compiling Shaders");
         var fragmentShader = getShader(gl, "shader-fs");
         var vertexShader   = getShader(gl, "shader-vs");
 
@@ -461,30 +430,13 @@ and open the template in the editor.
         gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
         gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
     }
-
+    
+    /* Count total number of vertexes needed for a given buffer */
     function initBuffers() {
-        coordinatePositionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, coordinatePositionBuffer);
-        var vertices = [    0.0, 0.0,  0.0, 
-                            1.0, 0.0,  0.0];
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-        coordinatePositionBuffer.itemSize = 3; // columns
-        coordinatePositionBuffer.numItems = 2; // rows
-        coordinateColorBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, coordinateColorBuffer);
-        var colors = [
-            1.0, 0.0, 0.0, 1.0,
-            0.0, 1.0, 0.0, 1.0,
-            0.0, 0.0, 1.0, 1.0
-        ];
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-        coordinateColorBuffer.itemSize = 4; // columns
-        coordinateColorBuffer.numItems = 3; // rows
-
-        /* END OF COORDINATE BUFFER CREATION */
-        triangleVertexPositionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexBufferTriangles), gl.STATIC_DRAW);
+        appendLog(0, "Building Vertex Buffers");
+        vertexBufferPoints2 = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferPoints2);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexBufferPoints.length), gl.STATIC_DRAW);
     }
 
     function drawScene() {
@@ -496,44 +448,16 @@ and open the template in the editor.
         mat4.translate(mvMatrix, mvMatrix, [0, 0, -3]);
         mat4.multiply(mvMatrix, mvMatrix, orbitRotationMatrix);
 
-        // Scale -> Rotate -> Translate  (reverse order for all at once)
-        //mat4.rotateX(pMatrix, pMatrix, x);
-        //mat4.rotateY(pMatrix, pMatrix, y);
-
-        // draw coordinates
-        
-        gl.bindBuffer(gl.ARRAY_BUFFER, coordinatePositionBuffer);
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, coordinatePositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, coordinateColorBuffer);
-              gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, coordinateColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferPoints2);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 0, 4);
 
         setMatrixUniforms();
-        gl.drawArrays(gl.POINTS, 0, coordinatePositionBuffer.numItems);
-
-        mat4.rotateZ(mvMatrix, mvMatrix, Math.PI/2);
-
-        setMatrixUniforms();
-        gl.drawArrays(gl.POINTS, 0, coordinatePositionBuffer.numItems);
-        mat4.rotateY(mvMatrix, mvMatrix, Math.PI/2);
-        
-        setMatrixUniforms();
-        gl.drawArrays(gl.POINTS, 0, coordinatePositionBuffer.numItems);
-
-        /* END OF COORDINATE DRAW */
-
-        setMatrixUniforms();
-        gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 28, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 28, 12);
-
-        setMatrixUniforms();
-        gl.drawArrays(gl.TRIANGLES, 0, vertexBufferTriangles.length/7); // 6 verticies for each point in triangle
+        appendLog(0, vertexBufferPoints.length/7);
+        gl.drawArrays(gl.POINTS, 0, vertexBufferPoints.length/7);
     }
 
-    function appendLog(level, text){
+    function appendLog(level, text) {
         switch(level){
             case 0: error_console.innerHTML += "<p id=log_info>[INFO ] " + text + "</p>"; break;
             case 1: error_console.innerHTML += "<p id=log_warn>[WARN ] " + text + "</p>"; break;
@@ -541,15 +465,28 @@ and open the template in the editor.
         }
         error_console.scrollTop = error_console.scrollHeight;
     }
+    
+    /* Generate all attributes and proceedural geometry needed for each gadget. */
+    function initGadgets(){
+        appendLog(0, "Generating Gadgets");
+        Player = new Gadget();
+        //Player.setName("Bobby");
+        //Player.setOrigin(point_d);
+        Player.name = "Yahoo";
+        Player.addPoint(point_a, color_a);
+        Player.addPoint(point_b, color_b);
+        Player.addPoint(point_c, color_c);
+        gadgets.push(Player);
+    }
 
-    function init_engine(){
+    function initEngine() {
         error_console = document.getElementById("error_console");
-        appendLog(0, "Starting Init Process Info");
+        appendLog(0, "Starting WebGL Engine");
         var canvas = document.getElementById("webgl-canvas");
         initGL(canvas);
         initShaders();
+        initGadgets();
         initBuffers();
-        //initModels();
         gl.clearColor(1.0, 1.0, 1.0, 1.0);
         gl.enable(gl.DEPTH_TEST);
 
@@ -560,7 +497,7 @@ and open the template in the editor.
         drawScene();
         
         console.log(document.getElementById("console"));
-        appendLog(0, "Init Complete");
+        appendLog(0, "WebGL Start Complete");
     }
 </script>
 
