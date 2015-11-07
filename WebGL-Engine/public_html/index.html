@@ -30,21 +30,7 @@
     var r = 0, g = 1, b = 2, a = 3;     /* DO NOT MODIFY THESE VALUES */
     var x_rotation = 0, y_rotation = 0, z_rotation = 0;
 
-    //var vertexBufferPoints    = [];  // pt, color
-    
-                var vertexBufferPoints = new Float32Array([    
-                            0.0, 0.0, 0.0,          // position
-                            1.0, 0.0, 0.0, 1.0,     // color
-                            1.0, 0.0, 0.0,
-                            0.0, 1.0, 0.0, 1.0,
-                            0.0, 1.0, 0.0,
-                            0.0, 0.0, 1.0, 1.0,
-                            0.0, 0.0, 1.0,
-                            0.0, 0.0, 0.0, 1.0
-                            ]);
-    
-    
-    
+    var vertexBufferPoints    = [];  // pt, color
     var vertexBufferLines     = [];  // pt1, pt_1_color, pt2, pt_2_color
     var vertexBufferTriangles = [];  // pt_1, pt_1_color, pt_2, pt_2_color, pt_3, pt_3_color
     
@@ -168,7 +154,7 @@
             }
             return vertexCounter;
         }
-    
+
         /* Add colored line to buffer. */
         this.addLine = function (pt1, pt_1_color, pt2, pt_2_color){
             // TODO:
@@ -208,7 +194,6 @@
         addTriangle(pt2, color_2, pt4, color_4, pt3, color_3);
         return vertexBufferTriangles.length;
     }
-    
 
     function addRectangleOneColor(pt1, pt2, pt3, color){
          addRectangle(pt1, color, pt2, color, pt3, color, color);
@@ -221,7 +206,6 @@
     /*
     function addCubeOffset(origin, width, depth, height, color_1, color_2...){
     }
-    
 
     */
     /*
@@ -251,7 +235,7 @@
 
     /**
      * Generate cube with one color per point.
-     
+
     function addCube(pt1, color_1, pt2, color_2, pt3, color_3, pt4, color_4, color_5, color_6, color_7, color_8){
         var height = pt1[z] - pt2[z];
         var width  = pt2[x] - pt1[x];
@@ -275,7 +259,7 @@
     */
     /**
      * Generate cube with only one color.
-     
+
     function addCubeOneColor(pt1, pt2, pt3, pt4, color){
         addCube(pt1, color, pt2, color, pt3, color, pt4, color, color, color, color, color);
     }
@@ -468,7 +452,9 @@
         gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 28, 12);
 
         setMatrixUniforms();
-        gl.drawArrays(gl.POINTS, 0, 4);
+        appendLog(0, vertexBufferPoints.length/7);
+        // 7 = three for position and four for color including alpha
+        gl.drawArrays(gl.POINTS, 0, vertexBufferPoints.length/7);
     }
 
     function appendLog(level, text) {
@@ -484,8 +470,6 @@
     function initGadgets(){
         appendLog(0, "Generating Gadgets");
         Player = new Gadget();
-        //Player.setName("Bobby");
-        //Player.setOrigin(point_d);
         Player.name = "Yahoo";
         Player.addPoint(point_a, color_a);
         Player.addPoint(point_b, color_b);
