@@ -30,7 +30,21 @@
     var r = 0, g = 1, b = 2, a = 3;     /* DO NOT MODIFY THESE VALUES */
     var x_rotation = 0, y_rotation = 0, z_rotation = 0;
 
-    var vertexBufferPoints    = [];  // pt, color
+    //var vertexBufferPoints    = [];  // pt, color
+    
+                var vertexBufferPoints = new Float32Array([    
+                            0.0, 0.0, 0.0,          // position
+                            1.0, 0.0, 0.0, 1.0,     // color
+                            1.0, 0.0, 0.0,
+                            0.0, 1.0, 0.0, 1.0,
+                            0.0, 1.0, 0.0,
+                            0.0, 0.0, 1.0, 1.0,
+                            0.0, 0.0, 1.0,
+                            0.0, 0.0, 0.0, 1.0
+                            ]);
+    
+    
+    
     var vertexBufferLines     = [];  // pt1, pt_1_color, pt2, pt_2_color
     var vertexBufferTriangles = [];  // pt_1, pt_1_color, pt_2, pt_2_color, pt_3, pt_3_color
     
@@ -434,9 +448,9 @@
     /* Count total number of vertexes needed for a given buffer */
     function initBuffers() {
         appendLog(0, "Building Vertex Buffers");
-        vertexBufferPoints2 = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferPoints2);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexBufferPoints.length), gl.STATIC_DRAW);
+        vertexBufferPointsGL = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferPointsGL);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexBufferPoints), gl.STATIC_DRAW);
     }
 
     function drawScene() {
@@ -448,13 +462,13 @@
         mat4.translate(mvMatrix, mvMatrix, [0, 0, -3]);
         mat4.multiply(mvMatrix, mvMatrix, orbitRotationMatrix);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferPoints2);
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 0, 4);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferPointsGL);
+        // each vertex = 4 byes
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 28, 0);
+        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 28, 12);
 
         setMatrixUniforms();
-        appendLog(0, vertexBufferPoints.length/7);
-        gl.drawArrays(gl.POINTS, 0, vertexBufferPoints.length/7);
+        gl.drawArrays(gl.POINTS, 0, 4);
     }
 
     function appendLog(level, text) {
@@ -534,4 +548,3 @@
 </body>
 
 </html>
-
